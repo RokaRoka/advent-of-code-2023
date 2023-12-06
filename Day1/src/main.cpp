@@ -44,14 +44,15 @@ void closeFile() {
 void getCalibrationsSum() {
     string line = "";
     int sum = 0;
-    getline(file, line);
-    sum = getCalibrationValue(line);
-    // while (!getline(file, line).eof()) {
-    //     // cout << "Line: " << line << endl;
-    //     int value = getCalibrationValue(line);
-    //     sum += value;
-    //     cout << "Value: " << value << endl;
-    // }
+    //getline(file, line);
+    //cout << line << endl;
+    //sum = getCalibrationValue(line);
+    while (!getline(file, line).eof()) {
+        // cout << "Line: " << line << endl;
+        int value = getCalibrationValue(line);
+        sum += value;
+        cout << "Value: " << value << endl;
+    }
     cout << "Sum is " << sum << endl;
 }
 
@@ -60,22 +61,22 @@ int getCalibrationValue(string line) {
     string sValue = "";
     // regex definitions
     smatch m;
-    regex e("([1-9]|one|two|three|four|five|six|seven|eight|nine)+");
+    regex e("(?:[1-9])|(?:one)|(?:two)|(?:three)|(?:four)|(?:five)|(?:six)|(?:seven)|(?:eight)|(nine)");
 
     // search line
-    regex_search(line, m, e, regex_constants::match_default | regex_constants::match_any);
-        for (auto x:m) {
+    while (regex_search(line.cbegin(), line.cend(), m, e, regex_constants::match_any | regex_constants::match_default)) {
+        //for (auto x:m) {
+            auto x = m[0];
             cout << x << " ";
-        }
+            string toAdd = x;
+            if (toAdd.size() > 1)
+                toAdd = unspellDigit(toAdd);
+            sValue.append(toAdd);
+            line = line.substr(m.position() + 1);
+        //}
         cout << endl;
-        // auto x = m[0];
-        // cout << x << endl;
-        // string toAdd = x;
-        // if (toAdd.size() > 1)
-        //     toAdd = unspellDigit(toAdd);
-        // sValue.append(toAdd);
-        // line = m.suffix().str();
-
+    }
+       
 
     // cast value into int
     if (sValue.size() > 0) {
