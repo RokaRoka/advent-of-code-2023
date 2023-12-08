@@ -3,7 +3,6 @@
 #include <iterator>
 #include <ostream>
 #include <string>
-#include <vcruntime.h>
 #include <vector>
 #include <regex>
 using namespace std;
