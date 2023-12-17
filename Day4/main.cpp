@@ -23,6 +23,11 @@ vector<int> getYourNums(string input);
 
 // for calcing sum
 int getCardScore(unordered_set<int> winningNumSet, vector<int> yourNums);
+int getTotalScore(ifstream &file);
+
+// for getting more cards
+int getMatches(unordered_set<int> winningNumSet, vector<int> yourNums);
+int getTotalScratchCards(ifstream &file);
 
 // for testing
 void testInputParsing();
@@ -31,25 +36,10 @@ void testCardScore();
 auto main(int argc, char *argv[]) -> int {
     if (openFile(INPUT)) {
         //testInputParsing();
-        int totalScore = 0;
-        string line;
-        while(getline(file, line)) {
-           cout << line << endl; 
-            regex r("Card\\s+\\d+:([\\s|\\d]+) \\|([\\s|\\d]+)");
-            smatch m;
-            // card
-            if (regex_match(line, m, r)) {
-                cout << "m!" << endl;
-                // get winning numbers
-                unordered_set<int> winningNums = getWinningNumSet(m[1]);
-                // get your nums
-                vector<int> yourNums = getYourNums(m[2]);
-                // score
-                totalScore += getCardScore(winningNums, yourNums);
-            }
-        }
-
-        cout << "Total Score is " << totalScore << endl;
+        //int totalScore = getTotalScore(file);
+        //cout << "Part 1: Total Score is " << totalScore << endl;
+        int totalCards = getTotalScratchCards(file);
+        cout << "Part 2: Total Cards is " << totalCards << endl;
     }
     return 0;
 }
@@ -70,11 +60,11 @@ unordered_set<int> getWinningNumSet(string input) {
     unordered_set<int> set(0);
     while(regex_search(input, m, r)) {
         int num = stoi(m[1]);
-        cout << num << " ";
+        // cout << num << " ";
         set.insert(num);
         input = m.suffix();
     }
-    cout << endl;
+    // cout << endl;
 
     return set;
 }
@@ -86,11 +76,11 @@ vector<int> getYourNums(string input) {
     vector<int> nums(0);
     while(regex_search(input, m, r)) {
         int num = stoi(m[1]);
-        cout << num << " ";
+        // cout << num << " ";
         nums.push_back(num);
         input = m.suffix();
     }
-    cout << endl;
+    // cout << endl;
 
     return nums;
 }
@@ -147,4 +137,77 @@ int getCardScore(unordered_set<int> winningNumSet, vector<int> yourNums) {
     }
 
     return score;
+}
+
+int getMatches(unordered_set<int> winningNumSet, vector<int> yourNums) {
+    int count = 0;
+    for (int x: yourNums) {
+        count += winningNumSet.count(x);
+    }
+    return count;
+}
+
+int getTotalScore(ifstream &file) {
+    int totalScore = 0;
+    if (file.is_open()) {
+        string line;
+        while(getline(file, line)) {
+           cout << line << endl;
+            regex r("Card\\s+\\d+:([\\s|\\d]+) \\|([\\s|\\d]+)");
+            smatch m;
+            // card
+            if (regex_match(line, m, r)) {
+                cout << "m!" << endl;
+                // get winning numbers
+                unordered_set<int> winningNums = getWinningNumSet(m[1]);
+                // get your nums
+                vector<int> yourNums = getYourNums(m[2]);
+                // score
+                totalScore += getCardScore(winningNums, yourNums);
+            }
+        }
+    }
+    return totalScore;
+}
+
+int getTotalScratchCards(ifstream &file) {
+    int totalCards = 0;
+    if (file.is_open()) {
+        vector<int> cardCopies(1, 1);
+        int i = 0;
+        string line;
+        while(getline(file, line)) {
+            cout << "Card " << i+1 << " - Copies: " << cardCopies[i] << endl;
+            regex r("Card\\s+\\d+:([\\s|\\d]+) \\|([\\s|\\d]+)");
+            smatch m;
+            // card
+            if (regex_match(line, m, r)) {
+                cout << "m!" << endl;
+                unordered_set<int> winningNums = getWinningNumSet(m[1]);
+                vector<int> yourNums = getYourNums(m[2]);
+                int matches = getMatches(winningNums, yourNums);
+
+                // run for each copy of CURRENT card
+                for (int j = 0; j < cardCopies[i]; j++) {
+                    cout << "Copy " << j + 1 << " out of " << cardCopies[i] << endl;
+                    // create copies of FUTURE CARDS
+                    for (int k = i + 1; k < i + 1 + matches; k++) {
+                        //cout << "Create copy for card" << k << endl;
+                        if (k >= cardCopies.size()) {
+                            cardCopies.push_back(1);
+                        }
+                        cardCopies[k]++;
+                    }
+                    // count each card copy we run through
+                    totalCards += 1;
+                }
+            }
+            i++;
+            if (i >= cardCopies.size()) {
+                cardCopies.push_back(1);
+            }
+
+        }
+    }
+    return totalCards;
 }
